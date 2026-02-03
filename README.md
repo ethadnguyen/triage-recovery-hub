@@ -88,14 +88,19 @@ echo "OPENAI_API_KEY=sk-your-key" >> backend-express/.env
 
 ```bash
 # Build and start all services
-docker-compose -f docker-compose.express.yml up -d
+docker-compose --env-file ./backend-express/.env -f docker-compose.express.yml up -d
 
 # View logs
 docker-compose -f docker-compose.express.yml logs -f
 
 # Stop services
 docker-compose -f docker-compose.express.yml down
+
+# Stop and remove volumes (reset database)
+docker-compose -f docker-compose.express.yml down -v
 ```
+
+> **Note:** Flag `--env-file ./backend-express/.env` is required to load PostgreSQL credentials. Without it, you may get "no PostgreSQL user name specified" error.
 
 ### 3. Access the Application
 
@@ -105,6 +110,15 @@ docker-compose -f docker-compose.express.yml down
 | Agent Dashboard | http://localhost:3000/agent | Review & handle tickets |
 | Backend API | http://localhost:8000 | REST API |
 | Health Check | http://localhost:8000/health | System status |
+
+### 4. View Database (Optional)
+
+```bash
+cd backend-express
+npx prisma studio
+```
+
+This opens a GUI at http://localhost:5555 to view and edit database records.
 
 ## Development (without Docker)
 
@@ -210,16 +224,27 @@ npm run dev
 ### Backend (`backend-express/.env`)
 
 ```env
+# Server
 PORT=8000
 NODE_ENV=development
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/triage_db
+
+# Database (used by Docker Compose and Prisma)
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=triage_db
+DATABASE_URL=postgresql://postgres:your_password@localhost:5432/triage_db?schema=public
+
+# Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
+REDIS_URL=redis://localhost:6379
 
 # OpenAI (get key at https://platform.openai.com/api-keys)
 OPENAI_API_KEY=sk-your-openai-api-key
 OPENAI_MODEL=gpt-4o-mini
 ```
+
+> **Note:** `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` are used by Docker Compose to initialize PostgreSQL container.
 
 ### Supported OpenAI Models
 
