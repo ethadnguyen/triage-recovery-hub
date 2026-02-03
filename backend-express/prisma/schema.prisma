@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TicketStatus {
+  PENDING
+  PROCESSING
+  TRIAGED
+  APPROVED
+  REJECTED
+  FAILED
+}
+
+enum TicketCategory {
+  BILLING
+  TECHNICAL
+  FEATURE_REQUEST
+  GENERAL
+  UNKNOWN
+}
+
+enum TicketUrgency {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+model Ticket {
+  id             Int             @id @default(autoincrement())
+  jobId          String?         @unique @map("job_id")
+  
+  customerName   String          @map("customer_name")
+  customerEmail  String          @map("customer_email")
+  subject        String
+  originalText   String          @map("original_text") @db.Text
+  
+  status         TicketStatus    @default(PENDING)
+  category       TicketCategory?
+  sentimentScore Float?          @map("sentiment_score")
+  urgency        TicketUrgency?
+  
+  aiDraftReply   String?         @map("ai_draft_reply") @db.Text
+  aiAnalysis     String?         @map("ai_analysis") @db.Text
+  
+  finalReply     String?         @map("final_reply") @db.Text
+  agentNotes     String?         @map("agent_notes") @db.Text
+  
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  triagedAt      DateTime?       @map("triaged_at")
+  resolvedAt     DateTime?       @map("resolved_at")
+
+  @@map("tickets")
+}
